@@ -9,13 +9,17 @@ fi
 
 # Install Core Build Tools & GUI Apps
 dnf -y install \
-    bash binutils bison coreutils diffutils findutils \
-    gawk gcc gcc-c++ grep gzip m4 make patch perl \
-    python3 sed tar texinfo xz xz-devel wget curl glibc-devel \
-    gparted parted util-linux \
-    firefox leafpad xterm opendoas sddm
+   bash binutils bison busybox  coreutils curl dash \
+   diffutils distrobox findutils firefox fish  gawk gcc gcc-c++ \
+   git glibc-devel gnupg gparted grep gzip  ksh leafpad m4 \
+   make nushell opendoas parted patch perl  python3 sed tar \
+   texinfo util-linux wget xonsh xterm \
+   xz  xz-devel zsh
+dnf remove -y \
+   fcitx5 filelight htop kcharselect kde-connect \
+   kdebugsettings  kfind krfb kwalletmanager kwrite nvtop
 
-dnf install -y @kde-desktop-environment
+#dnf install -y @kde-desktop-environment
 
 # Setup User and Permissions
 groupadd -f wheel

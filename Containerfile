@@ -4,7 +4,7 @@ COPY build_files /
 COPY system_files /system_files
 
 # Base Image: Use Fedora Bootc Minimal
-FROM quay.io/fedora/fedora-bootc:40
+FROM quay.io/fedora/fedora-minimal:latest
 
 ### MODIFICATIONS
 ## All setup logic occurs inside build.sh to keep layers clean

@@ -15,7 +15,7 @@ dnf -y install \
     gparted parted util-linux \
     firefox leafpad xterm opendoas sddm
 
-dnf -y groupinstall "KDE Plasma Desktop"
+dnf install -y @kde-desktop-environment
 
 # Setup User and Permissions
 groupadd -f wheel

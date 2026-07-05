@@ -1,0 +1,12 @@
+[customizations.kernel]
+append = "quiet splash rw"
+
+# Safely injects the compilation RAM disk without destroying system mount configurations
+[[customizations.files]]
+path = "/etc/fstab.d/lfs-sources.fstab"
+mode = "0644"
+user = "root"
+group = "root"
+data = """
+tmpfs  /mnt/lfs/sources  tmpfs  defaults,size=8G  0 0
+"""

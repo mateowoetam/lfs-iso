@@ -1,27 +1,41 @@
-#!/bin/bash
-
+#!/bin/sh
 set -ouex pipefail
-
-# Copy the contents of system_files/ of the git repo to /
+LFS_VERSION="13.0"
+if [ -d "/ctx/system_files" ];then
 cp -avf "/ctx/system_files"/. /
-
-### Install packages
-
-# Packages can be installed from any enabled yum repo on the image.
-# RPMfusion repos are available by default in ublue main images
-# List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
-
-# this installs a package from fedora repos
-dnf5 install -y tmux
-
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
-
-#### Example for enabling a System Unit File
-
-systemctl enable podman.socket
+fi
+dnf5 -y install \
+bash binutils bison coreutils diffutils findutils \
+gawk gcc gcc-c++ grep gzip m4 make patch perl \
+python3 sed tar texinfo xz xz-devel wget curl glibc-devel \
+gparted parted util-linux \
+firefox leafpad xterm opendoas sddm
+dnf5 -y groupinstall "KDE Plasma Desktop"
+groupadd -f wheel
+groupadd lfs
+useradd -s /bin/bash -g lfs -G wheel -m lfs
+passwd -d lfs
+echo "lfs ALL=(ALL) NOPASSWD: ALL" >>/etc/sudoers
+echo "permit nopass :wheel" >/etc/doas.conf
+chown root:root /etc/doas.conf
+chmod 0600 /etc/doas.conf
+mkdir -p /etc/sddm.conf.d
+cat <<EOF >/etc/sddm.conf.d/autologin.conf
+[Autologin]
+User=lfs
+Session=plasma
+EOF
+systemctl enable sddm
+systemctl set-default graphical.target
+sed -i 's/nullok_secure/nullok/' /etc/pam.d/system-auth
+sed -i 's/nullok_secure/nullok/' /etc/pam.d/password-auth
+sed -i 's/include system-auth/auth required pam_permit.so\ninclude system-auth/' /etc/pam.d/sddm-autologin
+DESKTOP_DIR="/home/lfs/Desktop"
+mkdir -p "$DESKTOP_DIR"
+BASE_URL="https://www.linuxfromscratch.org/lfs/downloads/stable-systemd"
+wget -P "$DESKTOP_DIR" "$BASE_URL/LFS-BOOK-$LFS_VERSION-NOCHUNKS.html"
+wget -P "$DESKTOP_DIR" "$BASE_URL/LFS-BOOK-$LFS_VERSION-SYSD.pdf"
+wget -P "$DESKTOP_DIR" "$BASE_URL/LFS-BOOK-$LFS_VERSION.tar.xz"
+tar -xf "$DESKTOP_DIR/LFS-BOOK-$LFS_VERSION.tar.xz" -C "$DESKTOP_DIR"
+chown -R lfs:lfs /home/lfs
+dnf5 clean all

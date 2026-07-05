@@ -32,20 +32,6 @@ echo "permit nopass :wheel" > /etc/doas.conf
 chown root:root /etc/doas.conf
 chmod 0600 /etc/doas.conf
 
-# Configure plasmalogin Autologin
-sudo mkdir -p /etc/plasmalogin.conf.d
-sudo tee /etc/plasmalogin.conf.d/autologin.conf >/dev/null <<'EOF'
-[Autologin]
-User=lfs
-Session=plasma
-EOF
-
-# Enable plasmalogin
-sudo systemctl enable --now plasmalogin
-sudo systemctl set-default graphical.target
-
-# Check
-sudo systemctl status plasmalogin --no-pager
 
 # Download LFS Documentation
 DESKTOP_DIR="/home/lfs/Desktop"

@@ -40,9 +40,6 @@ User=lfs
 Session=plasma
 EOF
 
-systemctl enable sddm
-systemctl set-default graphical.target
-
 # PAM Fixes for Passwordless Login/Autologin
 sed -i 's/nullok_secure/nullok/' /etc/pam.d/system-auth
 sed -i 's/nullok_secure/nullok/' /etc/pam.d/password-auth

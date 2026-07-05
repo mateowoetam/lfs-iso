@@ -8,14 +8,14 @@ if [ -d "/ctx/system_files" ]; then
 fi
 
 # Install Core Build Tools & GUI Apps
-dnf5 -y install \
+dnf -y install \
     bash binutils bison coreutils diffutils findutils \
     gawk gcc gcc-c++ grep gzip m4 make patch perl \
     python3 sed tar texinfo xz xz-devel wget curl glibc-devel \
     gparted parted util-linux \
     firefox leafpad xterm opendoas sddm
 
-dnf5 -y groupinstall "KDE Plasma Desktop"
+dnf -y groupinstall "KDE Plasma Desktop"
 
 # Setup User and Permissions
 groupadd -f wheel
@@ -57,4 +57,4 @@ tar -xf "$DESKTOP_DIR/LFS-BOOK-$LFS_VERSION.tar.xz" -C "$DESKTOP_DIR"
 
 # Permissions Cleanup & Package Cache Clear
 chown -R lfs:lfs /home/lfs
-dnf5 clean all
+dnf clean all

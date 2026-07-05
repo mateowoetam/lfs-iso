@@ -32,18 +32,20 @@ echo "permit nopass :wheel" > /etc/doas.conf
 chown root:root /etc/doas.conf
 chmod 0600 /etc/doas.conf
 
-# Configure SDDM Autologin
-mkdir -p /etc/sddm.conf.d
-cat <<EOF > /etc/sddm.conf.d/autologin.conf
+# Configure plasmalogin Autologin
+sudo mkdir -p /etc/plasmalogin.conf.d
+sudo tee /etc/plasmalogin.conf.d/autologin.conf >/dev/null <<'EOF'
 [Autologin]
 User=lfs
 Session=plasma
 EOF
 
-# PAM Fixes for Passwordless Login/Autologin
-sed -i 's/nullok_secure/nullok/' /etc/pam.d/system-auth
-sed -i 's/nullok_secure/nullok/' /etc/pam.d/password-auth
-sed -i 's/include system-auth/auth required pam_permit.so\ninclude system-auth/' /etc/pam.d/sddm-autologin
+# Enable plasmalogin
+sudo systemctl enable --now plasmalogin
+sudo systemctl set-default graphical.target
+
+# Check
+sudo systemctl status plasmalogin --no-pager
 
 # Download LFS Documentation
 DESKTOP_DIR="/home/lfs/Desktop"

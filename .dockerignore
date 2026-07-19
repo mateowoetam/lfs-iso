@@ -1,0 +1,8 @@
+# .dockerignore
+*_build*
+output/
+previous.manifest.json
+changelog.md
+output.env
+.git
+cosign.key

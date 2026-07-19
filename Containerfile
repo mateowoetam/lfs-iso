@@ -4,7 +4,7 @@ COPY build_files /
 COPY system_files /system_files
 
 # Base Image: Use Fedora Bootc Minimal
-FROM ghcr.io/ublue-os/kinoite-main:sha256-99fc02778845a092520958eb676f3164353a0379f8da822b365202fab3ef4a9f.sig
+FROM ghcr.io/ublue-os/kinoite-main@sha256:99fc02778845a092520958eb676f3164353a0379f8da822b365202fab3ef4a9f.sig
 
 ### MODIFICATIONS
 ## All setup logic occurs inside build.sh to keep layers clean

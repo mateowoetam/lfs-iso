@@ -1,6 +1,6 @@
 #!/bin/sh
 set -ouex pipefail
-LFS_VERSION="13.0"
+LFS_VERSION="13.1"
 if [ -d "/ctx/system_files" ];then
 cp -avf "/ctx/system_files"/. /
 fi
@@ -22,12 +22,13 @@ echo "lfs ALL=(ALL) NOPASSWD: ALL" >>/etc/sudoers
 echo "permit nopass :wheel" >/etc/doas.conf
 chown root:root /etc/doas.conf
 chmod 0600 /etc/doas.conf
-DESKTOP_DIR="/home/lfs/Desktop"
-mkdir -p "$DESKTOP_DIR"
+SKEL_DESKTOP="/etc/skel/Desktop"
 BASE_URL="https://www.linuxfromscratch.org/lfs/downloads/stable-systemd"
-wget -P "$DESKTOP_DIR" "$BASE_URL/LFS-BOOK-$LFS_VERSION-NOCHUNKS.html"
-wget -P "$DESKTOP_DIR" "$BASE_URL/LFS-BOOK-$LFS_VERSION-SYSD.pdf"
-wget -P "$DESKTOP_DIR" "$BASE_URL/LFS-BOOK-$LFS_VERSION.tar.xz"
-tar -xf "$DESKTOP_DIR/LFS-BOOK-$LFS_VERSION.tar.xz" -C "$DESKTOP_DIR"
+mkdir -p "$SKEL_DESKTOP"
+wget -P "$SKEL_DESKTOP" "$BASE_URL/LFS-BOOK-$LFS_VERSION-NOCHUNKS.html"
+wget -P "$SKEL_DESKTOP" "$BASE_URL/LFS-BOOK-$LFS_VERSION-SYSD.pdf"
+wget -P "$SKEL_DESKTOP" "$BASE_URL/LFS-BOOK-$LFS_VERSION.tar.xz"
+tar -xf "$SKEL_DESKTOP/LFS-BOOK-$LFS_VERSION.tar.xz" -C "$SKEL_DESKTOP"
+rm -f "$SKEL_DESKTOP/LFS-BOOK-$LFS_VERSION.tar.xz"
 chown -R lfs:lfs /home/lfs
 dnf clean all

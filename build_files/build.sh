@@ -1,5 +1,5 @@
 #!/bin/sh
-set -ouex pipefail
+set -uex -o pipefail
 LFS_VERSION="13.1"
 if [ -d "/ctx/system_files" ];then
 cp -avf "/ctx/system_files"/. /

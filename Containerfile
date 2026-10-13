@@ -3,8 +3,8 @@ FROM scratch AS ctx
 COPY build_files /build_files
 COPY system_files /system_files
 
-# Base Image: Use Fedora Bootc Minimal
-FROM quay.io/fedora/fedora-bootc:44
+# Base Image: Use ublue-kinoite
+FROM ghcr.io/blastpkmn/ublue-kinoite:latest
 
 ### MODIFICATIONS
 ## All setup logic occurs inside build.sh to keep layers clean

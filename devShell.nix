@@ -4,13 +4,13 @@
     podman
     git
     wget
-    tar
+    gnutar
     xz
     just
     python3
     gcc
-    g++
-    make
+    glibc.dev
+    gnumake
     binutils
     bison
     flex
@@ -18,12 +18,12 @@
     coreutils
     diffutils
     findutils
-    grep
+    gnugrep
     gzip
     m4
     patch
     perl
-    sed
+    gnused
     texinfo
     dosfstools
     rclone

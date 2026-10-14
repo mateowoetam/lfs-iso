@@ -24,7 +24,7 @@ on:
       - './.github/workflows/build-disk.yml'
 
 env:
-  IMAGE_NAME: ${{ github.event.repository.name }} # output of build.yml, keep in sync
+  IMAGE_NAME: lfs-iso-image # Must match the image name from build.yml and image-template.env
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
   DEFAULT_TAG: "latest"
   BIB_IMAGE: "quay.io/centos-bootc/bootc-image-builder:latest"
@@ -56,7 +56,7 @@ jobs:
           # Lowercase the image uri
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${IMAGE_NAME,,}" >> ${GITHUB_ENV}
-          echo "DISK_TYPE=${DISK_TYPE}" >> ${GITHUB_ENV}
+          echo "DISK_TYPE=${DISK_TYPE}" >> ${GITHUB_ENV]
           echo "USER_UID=${USER_UID}" >> ${GITHUB_ENV}
           echo "USER_GID=${USER_GID}" >> ${GITHUB_ENV}
 
@@ -76,6 +76,19 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup podman for container builds
+        run: |
+          # Initialize the storage directory (this fixes the sudo problem)
+          sudo mkdir -p /var/lib/containers/storage
+          sudo chown -R $(id -u) /var/lib/containers/storage
+
+      - name: Login to GHCR (for image pulling)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build disk images
         id: build

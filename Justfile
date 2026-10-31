@@ -20,7 +20,7 @@ default:
 # Check Just Syntax
 [group('Just')]
 check:
-    #!/usr/bin/bash
+    #!/bin/sh
     find . -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
     	just --unstable --fmt --check -f $file
@@ -31,7 +31,7 @@ check:
 # Fix Just Syntax
 [group('Just')]
 fix:
-    #!/usr/bin/bash
+    #!/bin/sh
     find . -type f -name "*.just" | while read -r file; do
     	echo "Checking syntax: $file"
     	just --unstable --fmt -f $file
@@ -42,7 +42,7 @@ fix:
 # Clean Repo
 [group('Utility')]
 clean:
-    #!/usr/bin/bash
+    #!/bin/sh
     set -eoux pipefail
     touch _build
     find *_build* -exec rm -rf {} \;
@@ -61,13 +61,13 @@ sudo-clean:
 [group('Utility')]
 [private]
 sudoif command *args:
-    #!/usr/bin/bash
+    #!/bin/sh
     function sudoif(){
-        if [[ "${UID}" -eq 0 ]]; then
+        if [ "${UID:-0}" -eq 0 ]; then
             "$@"
-        elif [[ "$(command -v sudo)" && -n "${SSH_ASKPASS:-}" ]] && [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+        elif [ "$(command -v sudo)" ] && [ -n "${SSH_ASKPASS:-}" ] && [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
             /usr/bin/sudo --askpass "$@" || exit 1
-        elif [[ "$(command -v sudo)" ]]; then
+        elif [ "$(command -v sudo)" ]; then
             /usr/bin/sudo "$@" || exit 1
         else
             exit 1
@@ -186,7 +186,7 @@ generate-default-tag $tag=default_tag:
 # Generate Tags
 [group('Utility')]
 generate-build-tags $target_image=image_name $tag=default_tag:
-    #!/usr/bin/bash
+    #!/bin/sh
     set -eoux pipefail
 
     DATE=$(date +%Y%m%d)
@@ -249,11 +249,11 @@ image_name $target_image=image_name:
 # 4. If the image is not found, pull it from the remote repository into reootful podman.
 
 _rootful_load_image $target_image=image_name $tag=default_tag:
-    #!/usr/bin/bash
+    #!/bin/sh
     set -eoux pipefail
 
     # Check if already running as root or under sudo
-    if [[ -n "${SUDO_USER:-}" || "${UID}" -eq "0" ]]; then
+    if [ -n "${SUDO_USER:-}" ] || [ "${UID:-0}" -eq "0" ]; then
         echo "Already root or running under sudo, no need to load image from user podman."
         exit 0
     fi
@@ -266,10 +266,10 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
 
     USER_IMG_ID=$(podman images --filter reference="${target_image}:${tag}" --format "'{{ '{{.ID}}' }}'")
 
-    if [[ $return_code -eq 0 ]]; then
+    if [ "$return_code" -eq 0 ]; then
         # If the image is found, load it into rootful podman
         ID=$(just sudoif podman images --filter reference="${target_image}:${tag}" --format "'{{ '{{.ID}}' }}'")
-        if [[ "$ID" != "$USER_IMG_ID" ]]; then
+        if [ "$ID" != "$USER_IMG_ID" ]; then
             # If the image ID is not found or different from user, copy the image from user podman to root podman
             COPYTMP=$(mktemp -p "${PWD}" -d -t _build_podman_scp.XXXXXXXXXX)
             just sudoif TMPDIR=${COPYTMP} podman image scp ${UID}@localhost::"${target_image}:${tag}" root@localhost::"${target_image}:${tag}"
@@ -289,34 +289,62 @@ _rootful_load_image $target_image=image_name $tag=default_tag:
 #   config: The configuration file to use for the build (default: disk_config/disk.toml)
 
 # Example: just _rebuild-bib localhost/fedora latest qcow2 disk_config/disk.toml
-_build-bib $target_image $tag $type $config: (_rootful_load_image target_image tag)
-    #!/usr/bin/env bash
+_build-bib $target_image $tag $type $config:
+    #!/bin/sh
     set -euo pipefail
 
-    args="--type ${type} "
-    args+="--use-librepo=True "
-    args+="--rootfs=btrfs"
+    args="--type ${type} --use-librepo=True --rootfs=btrfs"
 
     BUILDTMP=$(mktemp -p "${PWD}" -d -t _build-bib.XXXXXXXXXX)
 
-    sudo podman run \
-      --rm \
-      -it \
-      --privileged \
-      --pull=newer \
-      --net=host \
-      --security-opt label=type:unconfined_t \
-      -v $(pwd)/${config}:/config.toml:ro \
-      -v $BUILDTMP:/output \
-      -v /var/lib/containers/storage:/var/lib/containers/storage \
-      "${bib_image}" \
-      ${args} \
-      "${target_image}:${tag}"
+    # Determine if we need sudo or not
+    NEED_SUDO="0"
+    if [ -z "${SUDO_USER:-}" ] && [ "${UID:-0}" -ne "0" ]; then
+        NEED_SUDO="1"
+    fi
+
+    # Run podman with appropriate privileges
+    if [ "$NEED_SUDO" = "1" ]; then
+        sudo podman run \
+          --rm \
+          -it \
+          --privileged \
+          --pull=newer \
+          --net=host \
+          --security-opt label=type:unconfined_t \
+          -v $(pwd)/${config}:/config.toml:ro \
+          -v $BUILDTMP:/output \
+          -v /var/lib/containers/storage:/var/lib/containers/storage \
+          "${bib_image}" \
+          ${args} \
+          "${target_image}:${tag}"
+    else
+        # Running as root or in privileged context, no sudo needed  
+        podman run \
+          --rm \
+          -it \
+          --privileged \
+          --pull=newer \
+          --net=host \
+          --security-opt label=type:unconfined_t \
+          -v $(pwd)/${config}:/config.toml:ro \
+          -v $BUILDTMP:/output \
+          -v /var/lib/containers/storage:/var/lib/containers/storage \
+          "${bib_image}" \
+          ${args} \
+          "${target_image}:${tag}"
+    fi
 
     mkdir -p output
-    sudo mv -f $BUILDTMP/* output/
-    sudo rmdir $BUILDTMP
-    sudo chown -R $USER:$USER output/
+    if [ "$NEED_SUDO" = "1" ]; then
+        sudo mv -f $BUILDTMP/* output/
+        sudo rmdir $BUILDTMP
+        sudo chown -R $USER:$USER output/
+    else
+        mv -f $BUILDTMP/* output/
+        rmdir $BUILDTMP
+        chown -R $USER:$USER output/
+    fi
 
 # Podman builds the image from the Containerfile and creates a bootable image
 # Parameters:
@@ -354,7 +382,7 @@ rebuild-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_reb
 
 # Run a virtual machine with the specified image type and configuration
 _run-vm $target_image $tag $type $config:
-    #!/usr/bin/bash
+    #!/bin/sh
     set -eoux pipefail
 
     # Determine the image file based on the type

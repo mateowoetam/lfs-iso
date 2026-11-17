@@ -4,7 +4,7 @@ COPY build_files /build_files
 COPY system_files /system_files
 
 # Base Image: Use ublue-kinoite
-FROM ghcr.io/blastpkmn/ublue-kinoite:latest
+FROM ghcr.io/secureblue/kinoite-main-hardened:latest
 
 ### MODIFICATIONS
 ## All setup logic occurs inside build.sh to keep layers clean
